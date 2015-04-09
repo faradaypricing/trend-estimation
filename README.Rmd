@@ -1,0 +1,28 @@
+---
+title: "Trend Estimation"
+output:
+  html_document:
+    keep_md: yes
+    number_sections: yes
+---
+
+This repository contains the following data sets:
+
+# Starter For Ten
+
+- All losses are fully developed
+- Fixed number of losses (100) per year
+- All losses from a single loss distribution
+
+File: [data_set_1.csv](https://github.com/faradaypricing/trend-estimation/blob/master/data_set_1.csv)
+
+```{r echo=FALSE}
+library(ggplot2)
+set1 <- read.csv("data_set_1.csv")
+
+p <- ggplot(set1, aes(as.factor(year), loss/1e5))
+
+p + geom_boxplot() +
+  xlab("Year") + ylab("Loss (100k)") +
+  scale_y_continuous(limits = c(0,6), breaks=seq(from = 0, to = 6, by = 1))
+```
