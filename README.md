@@ -3,6 +3,12 @@
 # Overview
 
 
+Five data sets have been created with losses randomly generated.
+
+The data sets increase in complexity with extra features that mask the underlying trend.
+
+
+The goal is to estimate the trend rate that the claims are subject to.
 
 
 
