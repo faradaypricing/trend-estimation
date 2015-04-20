@@ -1,0 +1,135 @@
+---
+title: "Trend Estimation - 1"
+author: "Johnathan McCabe"
+date: "Monday, April 20, 2015"
+output: html_document
+---
+
+
+
+# Data Exploration
+
+Know that all losses are fully developed so investigate quantiles and mean.
+
+Simple average
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+
+set.1.df <- read.csv("data_set_1.csv")
+
+probs <- c(0.1,0.25,0.5,0.75,0.9)
+
+years <- 1:max(set.1.df$year)
+
+quantile.results <- do.call("rbind", lapply(years, function(yr){
+  
+  df <- set.1.df %>% filter(year == yr)
+  q<-  quantile(df$loss, probs = probs)
+  
+  q
+}))
+
+quantile.results <- as.data.frame(quantile.results, stringsAsFactors=F)
+quantile.results$year <- as.numeric(row.names(quantile.results))
+
+res <- quantile.results %>%
+  melt(value.name = "loss", variable.name = "type",id.vars = "year")
+
+means <- set.1.df %>%
+  group_by(year) %>%
+  summarise(loss = mean(loss)) %>%
+  mutate(type = "mean")
+
+
+res <- res %>%
+  rbind(means) %>%
+  mutate(year_factor = factor(year))
+
+
+p <- ggplot(res, aes(x = year_factor,y =  loss))
+p <- p + geom_line(aes(color = type, group = type), stat="identity") +
+  theme(legend.title = element_blank()) +
+  xlab("Year") +
+  ylab("Loss")
+
+print(p)
+```
+
+There is a definite general upward trend.
+
+# Linear Model Fit to Log Mean Loss
+
+Try fitting a linear model to the log of the means.
+
+```{r}
+
+log_means <- means %>% 
+  mutate(log_mean = log(loss))
+
+mod <- lm(data = log_means, formula = log_mean ~ year)
+
+mod$coefficients
+
+initial_mean <- exp(mod$coefficients[1])
+trend <- exp(mod$coefficients[2]) - 1
+
+
+```
+
+So the the initial mean for year 1 is `r round(initial_mean,0)` with trend rate `r sprintf("%.2f%%", trend*100)`
+
+```{r}
+
+x<-1:10
+y<-initial_mean * (1+trend)^(x )
+p2 <- p + geom_line(data = data.frame(x,y), aes(x,y), size=1)
+
+print(p2)
+
+summary(mod)
+```
+
+
+R^2^ is quite large so seems a decent fit.
+
+
+# Linear Model Fit to Log Loss
+
+Try fitting a linear model to the log of the losses.
+
+```{r}
+
+log_losses <- set.1.df %>% 
+  mutate(log_loss = log(loss))
+
+mod.losses <- lm(data = log_losses, formula = log_loss ~ year)
+
+mod.losses$coefficients
+
+initial_mean <- exp(mod.losses$coefficients[1])
+trend <- exp(mod.losses$coefficients[2]) - 1
+
+
+```
+
+So the the initial mean for year 1 is `r round(initial_mean,0)` with trend rate `r sprintf("%.2f%%", trend*100)`
+
+```{r}
+
+x<-1:10
+y<-initial_mean * (1+trend)^(x )
+p3 <- p + geom_line(data = data.frame(x,y), aes(x,y), size=1)
+
+print(p3)
+
+summary(mod.losses)
+```
+
+
+R^2^ is quite large so again seems a decent fit.
+
+Results are very similar (`r sprintf("%.2f%%", trend *100)` vs `r sprintf("%.2f%%", (exp(mod$coefficients[2]) - 1) *100)`)
+
