@@ -2,18 +2,18 @@
 title: "Trend Estimation - 1"
 author: "Johnathan McCabe"
 date: "Monday, April 20, 2015"
-output: pdf_document
+output: html_document
 ---
   
   
   
-  # Data Exploration
+# Data Exploration
   
   Know that all losses are fully developed so investigate quantiles and mean.
 
 Simple average
 
-```{r}
+```{r data-explore}
 library(dplyr)
 library(ggplot2)
 library(reshape2)
@@ -73,7 +73,7 @@ There is a definite general upward trend.
 
 Try fitting a linear model to the log of the means.
 
-```{r}
+```{r lm-log-mean}
 
 log_means <- means %>% 
   mutate(log_mean = log(loss))
@@ -109,7 +109,7 @@ R^2^ is quite large so seems a decent fit.
 
 Try fitting a linear model to the log of the losses.
 
-```{r}
+```{r lm}
 
 log_losses <- data.2 %>% 
   mutate(log_loss = log(loss))
@@ -148,7 +148,7 @@ Results are very similar (`r sprintf("%.2f%%", trend *100)` vs `r sprintf("%.2f%
 Three bases
 
 
-```{r}
+```{r bayes.1}
 ####################################################################################
 # JAGS script 
 ####################################################################################
@@ -358,7 +358,7 @@ print(k)
 
 
 # Empirical Bayes - Trend Estimate By Year
-```{r}
+```{r bayes.2}
 
 ####################################################################################
 # JAGS script 
@@ -435,3 +435,8 @@ print(p_lnorm.2)
 
 ```
 
+
+```{r results='asis'}
+
+plot(jagout)
+```
